@@ -61,50 +61,38 @@ def graph_to_digraph(graph):
 
 def transform_digraph(digraph):
     size = len(digraph)
-    newSize = size * 2 + 2
+    newSize = size * 2
     transformed = [[-1 for x in range(newSize)] for x in range(newSize)]
     for i in range(size):
         for j in range(size):
             if digraph[i][j] >= 0:
-                transformed[1+2*i][1+2*j] = digraph[i][j]
-                transformed[1+2*i+1][1+2*j+1] = digraph[i][j]
-        transformed[1+2*i][1+2*i+1] = 0
-        transformed[1+2*i+1][1+2*i] = 0
-    transformed[0][1] = 0
-    transformed[0][2] = 0
-    transformed[newSize-2][newSize-1] = 0
-    transformed[newSize-3][newSize-1] = 0
+                transformed[2*i][2*j+1] = digraph[i][j]
+                transformed[2*i+1][2*j] = digraph[i][j]
     return transformed
 
 
 def transform_unique_vertex(digraph):
     size = len(digraph)
-    newSize = size * 2 - 2
+    newSize = size * 2
     transformed = [[-1 for x in range(newSize)] for x in range(newSize)]
     for i in range(size):
         for j in range(size):
             if digraph[i][j] >= 0:
-                if i == 0:
-                    transformed[i][2*j-1] = digraph[i][j]
-                else:
-                    if j == size-1:
-                        transformed[2*i][newSize-1] = digraph[i][j]
-                    else:
-                        transformed[2*i][2*j-1] = digraph[i][j]
-        if i != 0 and i != size-1:
-            transformed[2*i-1][2*i] = 0
+                    transformed[2*i+1][2*j] = digraph[i][j]
+        transformed[2*i][2*i+1] = 0
     return transformed
 
 
 def detransform(paths):
     size = len(paths)
-    newSize = (size - 2) / 4
+    newSize = size / 4
     result = [[-1 for x in range(newSize)] for x in range(newSize)]
-    for i in range(1,size-1):
-        for j in range(1,size-1):
+    for i in range(size):
+        for j in range(size):
             if paths[i][j] >= 0:
-                result[(i-1)/4][(j-1)/4] = 1
+                result[i/4][j/4] = paths[i][j]
     return result
+
 
 def print_lp_data(graph, fileName):
     output = open(fileName, 'w');
@@ -134,15 +122,23 @@ if __name__ == '__main__':
     graph = read_graph(sys.argv[1])
     print_graph(graph, 'graph1_original.png')
     digraph = graph_to_digraph(graph)
-    print_digraph(digraph, 'graph2_digraph.png')
+    print_graph(digraph, 'graph2_digraph.png')
     transformed = transform_digraph(digraph)
-    print_digraph(transformed, 'graph3_transformed.png')
+    print_graph(transformed, 'graph3_transformed.png')
     transformed2 = transform_unique_vertex(transformed)
-    print_digraph(transformed2, 'graph4_transformed2.png')
+    transformed3 = [row[:] for row in transformed2]
+    print_graph(transformed2, 'graph4_transformed2.png')
     print_lp_data(transformed2, 'minimum_cost_flow.dat')
-    resultT2 = suurballe(transformed2)
-    print_digraph(resultT2, 'graph5_paths.png')
-    result = detransform(resultT2)
-    print_graph(graph, 'graph6_result.png', result)
+    initial = 1
+    destination1 = len(transformed2) - 4
+    destination2 = len(transformed2) - 2
+    resultT1 = suurballe(transformed2, initial, destination1)
+    print_digraph(resultT1, 'graph5_path1.png')
+    resultT2 = suurballe(transformed3, initial, destination2)
+    print_digraph(resultT2, 'graph6_path2.png')
+    result1 = detransform(resultT1)
+    result2 = detransform(resultT2)
+    print_graph(graph, 'graph7_result1.png', result1)
+    print_graph(graph, 'graph8_result2.png', result2)
     # result = suurballe(digraph)
     # print_graph(graph, 'graph3_result.png', result)

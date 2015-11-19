@@ -35,16 +35,15 @@ def dijkstra(graph, initial, destination):
 
     return visited, path1
 
-def suurballe(graph):
-    initial = 0
-    destination = len(graph) - 1
+def suurballe(graph, initial, destination):
     visited, path1 = dijkstra(graph, initial, destination)
     # Update costs:
     size = len(graph)
     original = [row[:] for row in graph]
     for i in range(size):
         for j in range(size):
-            graph[i][j] += visited[i] - visited[j]
+            if graph[i][j] >= 0:
+                graph[i][j] += visited[i] - visited[j]
     # Create residual graph
     # Remove edges directed into s and reversing the direction of the zero length edges along path1
     for j, i in path1.iteritems():
@@ -53,7 +52,9 @@ def suurballe(graph):
     # Find second path
     visited, path2 = dijkstra(graph, initial, destination)
     # Discard the reversed edges of path2 from both paths.
-    for j, i in path2.iteritems():
+    js = path2.keys()
+    for j in js:
+        i = path2[j]
         if i in path1:
             if path1[i] == j:
                 del path1[i]
